@@ -1,10 +1,14 @@
 package ua.training.model.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-class Contact {
-    private Integer id;
+@NoArgsConstructor
+@AllArgsConstructor
+public class Contact {
+//    private Integer id;
     private String firstName;
     private String lastName;
 //    private String middleName;
