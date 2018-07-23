@@ -1,9 +1,13 @@
 package ua.training.model.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-class Address {
+@NoArgsConstructor
+@AllArgsConstructor
+public class Address {
     private Integer postcode;
     private String city;
     private String street;
