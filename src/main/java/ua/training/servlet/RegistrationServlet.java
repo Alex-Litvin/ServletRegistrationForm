@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -56,7 +55,7 @@ public class RegistrationServlet extends HttpServlet {
         contact.setAddress(address);
 
         validateUserInput(req, contact);
-        checkInputForUnique(resp, contact);
+        checkInputForUnique(req, contact);
 
         req.setAttribute("contact", contact.getShortName());
         RequestDispatcher dispatcher = req.getRequestDispatcher("register.jsp");
@@ -70,13 +69,12 @@ public class RegistrationServlet extends HttpServlet {
         }
     }
 
-    private void checkInputForUnique(HttpServletResponse resp, Contact contact) throws IOException {
+    private void checkInputForUnique(HttpServletRequest req, Contact contact) throws IOException {
         try {
             Utility.checkUniquenessInput(model, contact);
             model.addContact(contact);
         } catch (NotUniqueFieldException e) {
-            PrintWriter out= resp.getWriter();
-            out.println("<font color=red>"+ e.getMessage() + "</font>");
+            req.setAttribute("message", e.getMessage());
         }
     }
 }
