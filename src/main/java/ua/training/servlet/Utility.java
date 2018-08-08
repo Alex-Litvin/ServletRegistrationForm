@@ -60,13 +60,13 @@ class Utility implements ContactConstants, VerificationConstants {
 
     private static void verifyHomePhone(List<String> errors, String homePhone, String pattern) {
         if (!homePhone.matches(pattern)) {
-            errors.add("Home phone must be in format " + HOME_PHONE_PATTERN);
+            errors.add("Home phone must be in format " + pattern);
         }
     }
 
     private static void verifyMobile(List<String> errors, String mobile, String pattern) {
         if (!mobile.matches(pattern)) {
-            errors.add("Mobile phone must be in format " + MOBILE_PHONE_PATTERN);
+            errors.add("Mobile phone must be in format " + pattern);
         }
     }
 

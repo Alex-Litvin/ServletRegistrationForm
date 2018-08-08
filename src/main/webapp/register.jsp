@@ -32,6 +32,7 @@
         }
     %>
     <span style="color: red; ">${message}</span>
+    <span style="color: red; ">${sqlerror}</span>
     <form method="post" class="w3-selection w3-light-grey w3-padding">
         <label>First name:
             <input type="text" name="firstName" class="w3-input w3-animate-input w3-border w3-round-large" style="width: 30%"><br/>

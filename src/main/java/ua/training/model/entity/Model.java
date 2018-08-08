@@ -1,7 +1,10 @@
 package ua.training.model.entity;
 
 import ua.training.model.exception.NotUniqueFieldException;
+import ua.training.service.ContactService;
+import ua.training.service.ContactServiceImpl;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,10 +12,11 @@ import java.util.stream.Collectors;
 
 public class Model {
 
-    private static int COUNT = 0;
 
+    private static int COUNT = 0;
     private static Model instance = new Model();
 
+    private ContactService contactService;
     private List<Contact> contacts;
 
     public static Model getInstance() {
@@ -21,20 +25,22 @@ public class Model {
 
     private Model() {
         contacts = new ArrayList<>();
+        contactService = new ContactServiceImpl();
     }
 
-    public void addContact(Contact contact) {
+    public void addContact(Contact contact) throws SQLException {
         contact.setId(++COUNT);
         contact.setShortName(contact.createShortName());
         contact.setCreationDate(LocalDateTime.now());
         contact.setModificationDate(LocalDateTime.now());
-        contacts.add(contact);
+        contactService.create(contact);
+//        contacts.add(contact);
     }
 
     public List<String> getContacts() {
-        return contacts.stream()
-                    .map(Contact::toString)
-                    .collect(Collectors.toList());
+        return contactService.findAll().stream()
+                        .map(Contact::toString)
+                        .collect(Collectors.toList());
     }
 
     public void checkLogin(String inputLogin) throws NotUniqueFieldException {

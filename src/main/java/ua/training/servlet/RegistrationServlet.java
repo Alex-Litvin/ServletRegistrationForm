@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -58,6 +59,7 @@ public class RegistrationServlet extends HttpServlet {
         checkInputForUnique(req, contact);
 
         req.setAttribute("contact", contact.getShortName());
+
         RequestDispatcher dispatcher = req.getRequestDispatcher("register.jsp");
         dispatcher.include(req, resp);
     }
@@ -75,6 +77,8 @@ public class RegistrationServlet extends HttpServlet {
             model.addContact(contact);
         } catch (NotUniqueFieldException e) {
             req.setAttribute("message", e.getMessage());
+        } catch (SQLException e) {
+            req.setAttribute("sqlerror", e.getMessage());
         }
     }
 }
