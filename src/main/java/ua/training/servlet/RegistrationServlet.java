@@ -4,6 +4,8 @@ import ua.training.model.entity.Address;
 import ua.training.model.entity.Contact;
 import ua.training.model.entity.Model;
 import ua.training.model.exception.NotUniqueFieldException;
+import ua.training.service.ContactService;
+import ua.training.service.ContactServiceImpl;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -21,11 +23,13 @@ public class RegistrationServlet extends HttpServlet {
     private static final String BUNDLE_EN = "Messages_en";
     private ResourceBundle bundle;
     private Model model;
+    private ContactService contactService;
 
     @Override
     public void init() {
         bundle = ResourceBundle.getBundle(BUNDLE_EN, Locale.ENGLISH);
         model = Model.getInstance();
+        contactService = new ContactServiceImpl();
     }
 
     @Override
@@ -56,9 +60,9 @@ public class RegistrationServlet extends HttpServlet {
         contact.setAddress(address);
 
         validateUserInput(req, contact);
-        checkInputForUnique(req, contact);
-
         req.setAttribute("contact", contact.getShortName());
+
+        checkInputForUnique(req, contact);
 
         RequestDispatcher dispatcher = req.getRequestDispatcher("register.jsp");
         dispatcher.include(req, resp);
@@ -73,12 +77,12 @@ public class RegistrationServlet extends HttpServlet {
 
     private void checkInputForUnique(HttpServletRequest req, Contact contact) throws IOException {
         try {
-            Utility.checkUniquenessInput(model, contact);
+            Utility.checkUniquenessInput(contactService, contact);
             model.addContact(contact);
-        } catch (NotUniqueFieldException e) {
-            req.setAttribute("message", e.getMessage());
         } catch (SQLException e) {
             req.setAttribute("sqlerror", e.getMessage());
+        } catch (NotUniqueFieldException e) {
+            req.setAttribute("notUnique", e.getMessage());
         }
     }
 }

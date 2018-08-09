@@ -2,8 +2,8 @@ package ua.training.servlet;
 
 import ua.training.model.ContactConstants;
 import ua.training.model.entity.Contact;
-import ua.training.model.entity.Model;
 import ua.training.model.exception.NotUniqueFieldException;
+import ua.training.service.ContactService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,22 +32,22 @@ class Utility implements ContactConstants, VerificationConstants {
         return errors;
     }
 
-    static void checkUniquenessInput(Model model, Contact contact) throws NotUniqueFieldException {
-        model.checkLogin(contact.getLogin());
-        model.checkMobile(contact.getMobile());
-        model.checkEmail(contact.getEmail());
-        model.checkSkype(contact.getSkype());
+    static void checkUniquenessInput(ContactService contactService, Contact contact) throws NotUniqueFieldException {
+        contactService.checkLogin(contact.getLogin());
+        contactService.checkMobile(contact.getMobile());
+        contactService.checkEmail(contact.getEmail());
+        contactService.checkSkype(contact.getSkype());
     }
 
     private static void verifyName(List<String> errors, String firstName, String pattern) {
         if (!firstName.matches(pattern)) {
-            errors.add("First name, middle name and last name must be in format " + NAME_PATTERN);
+            errors.add("First name, middle name and last name must be in format " + pattern);
         }
     }
 
     private static void verifyLogin(List<String> errors, String login, String pattern) {
         if (!login.matches(pattern)) {
-            errors.add("Login must be in format " + LOGIN_PATTERN);
+            errors.add("Login must be in format " + pattern);
         }
 
     }
@@ -72,33 +72,33 @@ class Utility implements ContactConstants, VerificationConstants {
 
     private static void verifyEmail(List<String> errors, String email, String pattern) {
         if (!email.matches(pattern)) {
-            errors.add("Email must be in format " + EMAIL_PATTERN);
+            errors.add("Email must be in format " + pattern);
         }
     }
 
     private static void verifySkype(List<String> errors, String skype, String pattern) {
         if (!skype.matches(pattern)) {
-            errors.add("Skype must be in format " + SKYPE_PATTERN);
+            errors.add("Skype must be in format " + pattern);
         }
     }
 
     private static void verifyPostcode(List<String> errors, String postcode, String pattern)
             throws NumberFormatException {
         if (!postcode.matches(pattern)) {
-            errors.add("Postcode must be in format " + POSTCODE_PATTERN);
+            errors.add("Postcode must be in format " + pattern);
         }
     }
 
     private static void verifyCityStreet(List<String> errors, String city, String pattern) {
         if (!city.matches(pattern)) {
-            errors.add("City and street must be in format " + CITY_STREET_PATTERN);
+            errors.add("City and street must be in format " + pattern);
         }
     }
 
     private static void verifyHouseApartmentNumber(List<String> errors, String number, String pattern)
             throws NumberFormatException {
         if (!number.matches(pattern)) {
-            errors.add("House and apartment number must be in format " + NUMBER_PATTERN);
+            errors.add("House and apartment number must be in format " + pattern);
         }
     }
 }

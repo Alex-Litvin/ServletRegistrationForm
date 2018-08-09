@@ -3,9 +3,9 @@ package ua.training.dao.implement;
 import ua.training.dao.ContactDao;
 import ua.training.model.entity.Address;
 import ua.training.model.entity.Contact;
+import ua.training.model.exception.NotUniqueFieldException;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +22,7 @@ public class JDBCContactDao implements ContactDao {
         String query = "INSERT INTO contact (first_name, middle_name, last_name," +
                 "short_name, login, comment, home_phone, mobile, email, skype, " +
                 "creation_date, modification_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
-        try {
-            PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+        try (PreparedStatement ps = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, entity.getFirstName());
             ps.setString(2, entity.getMiddleName());
             ps.setString(3, entity.getLastName());
@@ -36,29 +35,26 @@ public class JDBCContactDao implements ContactDao {
             ps.setString(10, entity.getSkype());
             ps.setTimestamp(11, Timestamp.valueOf(entity.getCreationDate()));
             ps.setTimestamp(12, Timestamp.valueOf(entity.getModificationDate()));
-
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             rs.next();
-            addAddress(rs.getInt(1), entity.getAddress());
+            createAddressByContactId(rs.getInt(1), entity.getAddress());
             return rs.getInt(1);
         } catch (SQLException e) {
             throw new SQLException();
         }
     }
 
-    private void addAddress(Integer contactId, Address address) {
+    private void createAddressByContactId(Integer contactId, Address address) {
         String query = "INSERT INTO address (id_contact, city, street, house_number," +
                 "apartment_number, postcode) VALUES(?, ?, ?, ?, ?, ?)";
-        try {
-            PreparedStatement ps = connection.prepareStatement(query);
+        try (PreparedStatement ps = connection.prepareStatement(query);) {
             ps.setInt(1, contactId);
             ps.setString(2, address.getCity());
             ps.setString(3, address.getStreet());
             ps.setInt(4, address.getHouseNumber());
             ps.setInt(5, address.getApartmentNumber());
             ps.setInt(6, address.getPostcode());
-
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -71,69 +67,56 @@ public class JDBCContactDao implements ContactDao {
     }
 
     @Override
-    public List<Contact> findAll() {
+    public List<Contact> findAll() throws SQLException {
         List<Contact> contacts = new ArrayList<>();
-        Contact contact = null;
+        Contact contact = new Contact();
         String query = "SELECT * FROM contact LEFT JOIN address a ON contact.id = a.id_contact";
-        try {
-            PreparedStatement ps = connection.prepareStatement(query);
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Integer id = rs.getInt("id");
-                String firstName = rs.getString("first_name");
-                String middleName = rs.getString("middle_name");
-                String lastName = rs.getString("last_name");
-                String shortName = rs.getString("short_name");
-                String login = rs.getString("login");
-                String comment = rs.getString("comment");
-                String homePhone = rs.getString("home_phone");
-                String mobile = rs.getString("mobile");
-                String email = rs.getString("email");
-                String skype = rs.getString("skype");
-                LocalDateTime creationDate = rs.getTimestamp("creation_date").toLocalDateTime();
-                LocalDateTime modificationDate = rs.getTimestamp("modification_date").toLocalDateTime();
-
-                contact = new Contact(id, firstName, middleName, lastName, shortName,
-                        login, comment, homePhone, mobile, email, skype, getAddress(id), creationDate, modificationDate);
+                contact.setId(rs.getInt("id"));
+                contact.setFirstName(rs.getString("first_name"));
+                contact.setMiddleName(rs.getString("middle_name"));
+                contact.setLastName(rs.getString("last_name"));
+                contact.setShortName(rs.getString("short_name"));
+                contact.setLogin(rs.getString("login"));
+                contact.setComment(rs.getString("comment"));
+                contact.setHomePhone(rs.getString("home_phone"));
+                contact.setMobile(rs.getString("mobile"));
+                contact.setEmail(rs.getString("email"));
+                contact.setSkype(rs.getString("skype"));
+                contact.setCreationDate(rs.getTimestamp("creation_date").toLocalDateTime());
+                contact.setModificationDate(rs.getTimestamp("modification_date").toLocalDateTime());
+                contact.setAddress(findAddressByContactId(rs.getInt("id")));
 
                 contacts.add(contact);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new SQLException();
         }
         return contacts;
     }
 
-    private Address getAddress(Integer contactId) {
+    private Address findAddressByContactId(Integer contactId) throws SQLException {
         String query = "SELECT * FROM address WHERE id_contact = ?";
         Address address = new Address();
-        try {
-            PreparedStatement ps = connection.prepareStatement(query);
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
             ps.setInt(1, contactId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                String city = rs.getString("city");
-                String street = rs.getString("street");
-                Integer houseNumber = rs.getInt("house_number");
-                Integer apartmentNumber = rs.getInt("apartment_number");
-                Integer postcode = rs.getInt("postcode");
-
-                System.out.println(postcode);
-                System.out.println(city);
-
-                address.setPostcode(postcode);
-                address.setCity(city);
-                address.setStreet(street);
-                address.setHouseNumber(houseNumber);
-                address.setApartmentNumber(apartmentNumber);
+                address.setCity(rs.getString("city"));
+                address.setStreet(rs.getString("street"));
+                address.setHouseNumber(rs.getInt("house_number"));
+                address.setApartmentNumber(rs.getInt("apartment_number"));
+                address.setPostcode(rs.getInt("postcode"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new SQLException();
         }
         return address;
     }
 
-        @Override
+    @Override
     public void update(Contact entity) {
 
     }
@@ -146,5 +129,62 @@ public class JDBCContactDao implements ContactDao {
     @Override
     public void close() throws Exception {
 
+    }
+
+    @Override
+    public void checkLogin(String login) throws NotUniqueFieldException {
+        String query = "SELECT true FROM contact WHERE login = ? LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, login);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                throw new NotUniqueFieldException("Contact with such login already exists!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Override
+    public void checkMobile(String mobile) throws NotUniqueFieldException {
+        String query = "SELECT true FROM contact WHERE mobile = ? LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, mobile);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                throw new NotUniqueFieldException("Contact with such mobile already exists!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void checkSkype(String skype) throws NotUniqueFieldException {
+        String query = "SELECT true FROM contact WHERE skype = ? LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, skype);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                throw new NotUniqueFieldException("Contact with such skype already exists!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void checkEmail(String email) throws NotUniqueFieldException {
+        String query = "SELECT true FROM contact WHERE email = ? LIMIT 1";
+        try (PreparedStatement ps = connection.prepareStatement(query)) {
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                throw new NotUniqueFieldException("Contact with such email already exists!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

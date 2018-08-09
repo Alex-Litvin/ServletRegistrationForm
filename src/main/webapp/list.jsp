@@ -1,4 +1,4 @@
-<%@ page import="java.util.List" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <html>
 <head>
@@ -13,23 +13,43 @@
         <div class="w3-container w3-light-blue">
             <h2>Contacts</h2>
         </div>
-        <%
-            List<String> names = (List<String>) request.getAttribute("userNames");
-
-            if (names != null && !names.isEmpty()) {
-                out.println("<ul class=\"w3-ul\">");
-                for (String s : names) {
-                    out.println("<li class=\"w3-hover-sand\">" + s + "</li>");
-                }
-                out.println("</ul>");
-
-            } else out.println("<div class=\"w3-panel w3-red w3-display-container w3-card-4 w3-round\">\n"
-                    +
-                    "   <span onclick=\"this.parentElement.style.display='none'\"\n" +
-                    "   class=\"w3-button w3-margin-right w3-display-right w3-round-large w3-hover-red w3-border w3-border-red w3-hover-border-grey\">×</span>\n" +
-                    "   <h5>There are no users yet!</h5>\n" +
-                    "</div>");
-        %>
+        <c:if test="${!empty userNames}">
+        <table class="w3-table w3-bordered w3-striped">
+            <c:forEach var="user" items="${userNames}">
+                <jsp:useBean id="user" class="ua.training.model.entity.Contact"/>
+                <tr class="w3-teal">
+                    <th>Id</th>
+                    <th>First name</th>
+                    <th>Last name</th>
+                    <th>Home phone</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Skype</th>
+                    <th>Login</th>
+                    <th>Postcode</th>
+                    <th>City</th>
+                    <th>Street</th>
+                    <th>House number</th>
+                    <th>Apartment number</th>
+                </tr>
+                <tr>
+                    <td><c:out value="${user.id}"/></td>
+                    <td><c:out value="${user.firstName}"/></td>
+                    <td><c:out value="${user.lastName}"/></td>
+                    <td><c:out value="${user.homePhone}"/></td>
+                    <td><c:out value="${user.mobile}"/></td>
+                    <td><c:out value="${user.email}"/></td>
+                    <td><c:out value="${user.skype}"/></td>
+                    <td><c:out value="${user.login}"/></td>
+                    <td><c:out value="${user.address.postcode}"/></td>
+                    <td><c:out value="${user.address.city}"/></td>
+                    <td><c:out value="${user.address.street}"/></td>
+                    <td><c:out value="${user.address.houseNumber}"/></td>
+                    <td><c:out value="${user.address.apartmentNumber}"/></td>
+                </tr>
+            </c:forEach>
+        </table>
+        </c:if>
     </div>
 </div>
 
